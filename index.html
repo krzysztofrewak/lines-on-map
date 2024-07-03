@@ -1,0 +1,73 @@
+<html lang="en">
+  <head>
+    <title>Lines on map</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body>
+    <div id="map" class="w-screen h-screen"></div>
+  </body>
+  <script>
+    let colorIterator = 0
+    const colors = ["aquamarine", "coral", "crimson", "darkcyan", "darkorchid", "deepskyblue", "goldenrod", "indigo", "lightseagreen", "mediumvioletred", "peru", "royalblue"]
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+    const map = L.map("map").setView([49.8825, 19.494444], 5)
+
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+      maxZoom: 19,
+      noWrap: true,
+    }).addTo(map)
+
+    map.on("click", function (e) {
+      const coordinates = e.latlng
+      const color = colors[colorIterator % colors.length]
+
+      const latitude = L.polyline([
+        [coordinates.lat, -180],
+        [coordinates.lat, 180]
+      ], {
+        color: color,
+      }).addTo(map)
+
+      const longitude = L.polyline([
+        [-90, coordinates.lng],
+        [90, coordinates.lng]
+      ], {
+        color: color,
+      }).addTo(map)
+
+      const marker = L.marker(coordinates, {
+        icon: L.divIcon({
+          iconSize: "auto",
+          html: letters[colorIterator % letters.length],
+          className: "size-6 font-bold border-2 rounded-full bg-white flex items-center justify-center border-[" + color + "]",
+          iconAnchor: [11, 11],
+        })
+      })
+      marker.addTo(map)
+      marker.on("click", function() {
+        map.removeLayer(marker)
+        map.removeLayer(latitude)
+        map.removeLayer(longitude)
+      })
+
+      const elements = [marker, latitude, longitude]
+      elements.forEach(el => {
+        el.on("mouseover", function() {
+          latitude.setStyle({ weight: 9 })
+          longitude.setStyle({ weight: 9 })
+        })
+        el.on("mouseout", function() {
+          latitude.setStyle({ weight: 3 })
+          longitude.setStyle({ weight: 3 })
+        })
+      })
+
+      colorIterator++
+    })
+  </script>
+</html>
